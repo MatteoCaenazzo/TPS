@@ -18,8 +18,8 @@ button { padding:8px 14px; border:none; background:black; color:white; border-ra
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-<header><h2>ECOMMERCE</h2></header>
-<div class="container" id="content"> </div>
+<header><h2>MyShop – Catalogo Prodotti</h2></header>
+<div class="container" id="content">Caricamento...</div>
 
 <script>
 var DATA_SOURCES = {
@@ -27,6 +27,11 @@ var DATA_SOURCES = {
     google: "google.txt",
     realme: "realme.csv",
     samsung: "samsung.json"
+};
+
+var Dealers = {
+    mediaworld: { nome: "mediaworld", prodotti: [DATA_SOURCES.apple, DATA_SOURCES.google, DATA_SOURCES.samsung]},
+    unieuro: { nome: "unieuro", prodotti: [DATA_SOURCES.realme, DATA_SOURCES.apple]}
 };
 
 function loadText(url) {
@@ -173,39 +178,57 @@ function loadAll(){
         for (var i=0;i<v.length;i++) out[out.length]=v[i];
 
         products = out;
-        showBrands();
+        showDealers();
     }).catch(function(){});
 }
 
-function showBrands(){
+function showDealer(dealersBrands){
     var container = document.getElementById("content");
 
     var brands = [];
-    for (var i = 0; i < products.length; i++){
-        var b = products[i].brand;
-        var found = false;
+    var dealerProducts = [];
 
-        for (var j = 0; j < brands.length; j++){
-            if (brands[j] === b) {
-                found = true;
-                break;
+    for (var i = 0; i < products.length; i++) {
+        var p = products[i];
+
+        if (dealersBrands.includes(DATA_SOURCES[p.brand])) {
+
+            if (!brands.includes(p.brand)) {
+                brands.push(p.brand);
             }
-        }
 
-        if (!found) brands[brands.length] = b;
+            dealerProducts.push(p);
+        }
     }
 
-    var html = "<h3>Seleziona una marca</h3><div class='grid'>";
+    var html = "<div id='back' onclick='showDealers()'>← Indietro</div>";
+
+    html += "<h3>Marche disponibili</h3><div class='grid'>";
 
     for (var i = 0; i < brands.length; i++){
         html += "<div class='card'><h4>" + brands[i] +
                 "</h4><button onclick=\"showBrand('" + brands[i] +
-                "')\">Apri</button></div>";
+                "')\">Apri marca</button></div>";
     }
+    html += "</div><br><hr><br>";
+    
+    html += "<h3>Prodotti disponibili</h3><div class='grid'>";
 
+    for (var i = 0; i < dealerProducts.length; i++){
+        var p = dealerProducts[i];
+
+        html += "<div class='card'><h4>" + p.title + "</h4>";
+        html += "<p>" + p.description.substring(0,60) + "...</p>";
+        html += "<b>€" + p.price.toFixed(2) + "</b><br><br>";
+        html += "<button onclick=\"showProduct('" + p.id + "')\">Vedi</button>";
+        html += "</div>";
+    }
     html += "</div>";
+
     container.innerHTML = html;
 }
+
+
 
 function showBrand(b){
     var list = [];
@@ -213,7 +236,7 @@ function showBrand(b){
         if (products[i].brand === b) list[list.length] = products[i];
     }
 
-    var html = "<div id='back' onclick='showBrands()'>← Indietro</div>";
+    var html = "<div id='back' onclick='showDealers()'>← Indietro</div>";
     html += "<h3>"+b+"</h3><div class='grid'>";
 
     for (var i=0;i<list.length;i++){
@@ -227,6 +250,22 @@ function showBrand(b){
     html += "</div>";
     document.getElementById("content").innerHTML = html;
 }
+
+function showDealers(){
+    var container = document.getElementById("content");
+    var html = "<h3>Seleziona un dealer</h3><div class='grid'>";
+
+    html += "<div class='card'><h4>" + Dealers.mediaworld.nome +
+            "</h4><button onclick='showDealer(Dealers.mediaworld.prodotti)'>Apri</button></div>";
+
+    html += "<div class='card'><h4>" + Dealers.unieuro.nome +
+            "</h4><button onclick='showDealer(Dealers.unieuro.prodotti)'>Apri</button></div>";
+
+    html += "</div>";
+    container.innerHTML = html;
+}
+
+
 function showProduct(id){
     var p = null;
     for (var i=0;i<products.length;i++){
