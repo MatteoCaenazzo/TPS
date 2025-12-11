@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prodotti>
+    <prodotto>
+        <id>a1</id>
+        <nome>iPhone 15</nome>
+        <categoria>Smartphone</categoria>
+        <prezzo>999.99</prezzo>
+        <descrizione>Smartphone Apple con display OLED, fotocamere avanzate e iOS 17.</descrizione>
+    </prodotto>
+
+    <prodotto>
+        <id>a2</id>
+        <nome>MacBook Air M3</nome>
+        <categoria>Laptop</categoria>
+        <prezzo>1299.00</prezzo>
+        <descrizione>Laptop sottile e leggero con chip M3 e lunga autonomia della batteria.</descrizione>
+    </prodotto>
+
+    <prodotto>
+        <id>a3</id>
+        <nome>iPad Pro 12.9</nome>
+        <categoria>Tablet</categoria>
+        <prezzo>1199.00</prezzo>
+        <descrizione>Tablet Apple con schermo Liquid Retina e supporto Apple Pencil.</descrizione>
+    </prodotto>
+</prodotti>

@@ -1,0 +1,23 @@
+[
+    {
+        "id": "s1",
+        "nome": "Galaxy S24",
+        "categoria": "Smartphone",
+        "prezzo": 899.99,
+        "descrizione": "Smartphone Samsung con fotocamere avanzate, display AMOLED e Android 14."
+    },
+    {
+        "id": "s2",
+        "nome": "Galaxy Book 4",
+        "categoria": "Laptop",
+        "prezzo": 1199.00,
+        "descrizione": "Laptop potente e leggero, ideale per lavoro e studio con lunga autonomia."
+    },
+    {
+        "id": "s3",
+        "nome": "Galaxy Tab S9",
+        "categoria": "Tablet",
+        "prezzo": 799.00,
+        "descrizione": "Tablet Samsung versatile con schermo AMOLED, perfetto per multimedia e produttività."
+    }
+]

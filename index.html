@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<title>Catalogo Prodotti</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; }
+header { background:#fff; padding:15px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+.container { max-width:1100px; margin:20px auto; background:#fff; padding:20px; border-radius:10px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:15px; }
+.card { padding:15px; border-radius:10px; background:#fafafa; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+button { padding:8px 14px; border:none; background:black; color:white; border-radius:6px; cursor:pointer; }
+#back { margin-bottom:20px; cursor:pointer; display:inline-block; }
+.modal-bg { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
+.modal { background:white; padding:20px; border-radius:10px; width:350px; }
+#productImage { width:250px; height:250px; object-fit:contain; background:#eee; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<header><h2>MyShop – Catalogo Prodotti</h2></header>
+<div class="container" id="content">Caricamento...</div>
+
+<script>
+var DATA_SOURCES = {
+    apple: "apple.xml",
+    google: "google.txt",
+    realme: "realme.csv",
+    samsung: "samsung.json"
+};
+
+function loadText(url) {
+    return fetch(url).then(function(r){ return r.text(); });
+}
+function parseXML(xmlText, brand){
+    var parser = new DOMParser();
+    var xml = parser.parseFromString(xmlText, "application/xml");
+    var nodes = xml.getElementsByTagName("prodotto");
+
+    var out = [];
+    for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+
+        var obj = {};
+        obj.id = n.getElementsByTagName("id")[0] ?
+                 n.getElementsByTagName("id")[0].textContent :
+                 brand + "-" + (i+1);
+
+        obj.title = n.getElementsByTagName("nome")[0] ?
+                    n.getElementsByTagName("nome")[0].textContent :
+                    "Prodotto";
+
+        obj.description = n.getElementsByTagName("descrizione")[0] ?
+                          n.getElementsByTagName("descrizione")[0].textContent :
+                          "";
+
+        obj.price = parseFloat(
+            n.getElementsByTagName("prezzo")[0] ?
+            n.getElementsByTagName("prezzo")[0].textContent : 0
+        );
+
+        obj.category = n.getElementsByTagName("categoria")[0] ?
+                       n.getElementsByTagName("categoria")[0].textContent :
+                       "Generale";
+
+        obj.image = null;
+        obj.brand = brand;
+
+        out[out.length] = obj;
+    }
+    return out;
+}
+
+function parseJSON(jsonText, brand){
+    var raw = JSON.parse(jsonText);
+    var arr;
+
+    if (raw instanceof Array) arr = raw;
+    else if (raw.products) arr = raw.products;
+    else if (raw.items) arr = raw.items;
+    else {
+        arr = [];
+        for (var k in raw) arr[arr.length] = raw[k];
+    }
+
+    var out = [];
+    for (var i = 0; i < arr.length; i++) {
+        out[out.length] = normalize(arr[i], brand, i);
+    }
+    return out;
+}
+
+function parseCSV(csvText, brand){
+    var lines = csvText.trim().split(/\r?\n/);
+    var headers = lines[0].split(",");
+
+    for (var h = 0; h < headers.length; h++) {
+        headers[h] = headers[h].trim();
+    }
+
+    var out = [];
+
+    for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(",");
+        var obj = {};
+
+        for (var j = 0; j < headers.length; j++) {
+            obj[headers[j]] = cols[j];
+        }
+
+        out[out.length] = normalize(obj, brand, i-1);
+    }
+
+    return out;
+}
+
+function parseTXT(txt, brand){
+    var lines = txt.trim().split(/\r?\n/);
+    var out = [];
+
+    for (var i = 0; i < lines.length; i++){
+        var parts = lines[i].split("|");
+
+        if (parts.length >= 4) {
+            var obj = {};
+            obj.id = parts[0].trim();
+            obj.nome = parts[1].trim();
+            obj.categoria = parts[2].trim();
+            obj.prezzo = parseFloat(parts[3].trim());
+            obj.descrizione = parts[4] ? parts[4].trim() : "";
+
+            out[out.length] = normalize(obj, brand, i);
+        }
+    }
+    return out;
+}
+
+
+function normalize(raw, brand, i){
+    var obj = {};
+    obj.id = raw.id ? raw.id : brand + "-" + (i+1);
+    obj.title = raw.nome ? raw.nome : "Prodotto";
+    obj.description = raw.descrizione ? raw.descrizione : "";
+    obj.price = parseFloat(raw.prezzo ? raw.prezzo : 0);
+    obj.category = raw.categoria ? raw.categoria : "Generale";
+    obj.image = null;
+    obj.brand = brand;
+    return obj;
+}
+
+var products = [];
+
+function loadAll(){
+    var out = [];
+
+    loadText(DATA_SOURCES.apple).then(function(t){
+        var v = parseXML(t,"apple");
+        for (var i=0;i<v.length;i++) out[out.length]=v[i];
+    }).catch(function(){});
+
+    loadText(DATA_SOURCES.google).then(function(t){
+        var v = parseTXT(t,"google");
+        for (var i=0;i<v.length;i++) out[out.length]=v[i];
+    }).catch(function(){});
+
+    loadText(DATA_SOURCES.realme).then(function(t){
+        var v = parseCSV(t,"realme");
+        for (var i=0;i<v.length;i++) out[out.length]=v[i];
+    }).catch(function(){});
+
+    loadText(DATA_SOURCES.samsung).then(function(t){
+        var v = parseJSON(t,"samsung");
+        for (var i=0;i<v.length;i++) out[out.length]=v[i];
+
+        products = out;
+        showBrands();
+    }).catch(function(){});
+}
+
+function showBrands(){
+    var container = document.getElementById("content");
+
+    var brands = [];
+    for (var i = 0; i < products.length; i++){
+        var b = products[i].brand;
+        var found = false;
+
+        for (var j = 0; j < brands.length; j++){
+            if (brands[j] === b) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) brands[brands.length] = b;
+    }
+
+    var html = "<h3>Seleziona una marca</h3><div class='grid'>";
+
+    for (var i = 0; i < brands.length; i++){
+        html += "<div class='card'><h4>" + brands[i] +
+                "</h4><button onclick=\"showBrand('" + brands[i] +
+                "')\">Apri</button></div>";
+    }
+
+    html += "</div>";
+    container.innerHTML = html;
+}
+
+function showBrand(b){
+    var list = [];
+    for (var i=0;i<products.length;i++){
+        if (products[i].brand === b) list[list.length] = products[i];
+    }
+
+    var html = "<div id='back' onclick='showBrands()'>← Indietro</div>";
+    html += "<h3>"+b+"</h3><div class='grid'>";
+
+    for (var i=0;i<list.length;i++){
+        var p = list[i];
+        html += "<div class='card'><h4>"+p.title+"</h4>";
+        html += "<p>"+ p.description.substring(0,60) +"...</p>";
+        html += "<b>€"+p.price.toFixed(2)+"</b><br><br>";
+        html += "<button onclick=\"showProduct('" + p.id + "')\">Vedi</button></div>";
+    }
+
+    html += "</div>";
+    document.getElementById("content").innerHTML = html;
+}
+function showProduct(id){
+    var p = null;
+    for (var i=0;i<products.length;i++){
+        if (products[i].id === id){
+            p = products[i];
+            break;
+        }
+    }
+
+    var html = "<div id='back' onclick=\"showBrand('" + p.brand + "')\">← Indietro</div>";
+    html += "<h2>"+p.title+"</h2>";
+    html += "<img id='productImage' src='"+(p.image?p.image:'')+"' onerror=\"this.style.display='none'\">";
+    html += "<p>"+p.description+"</p>";
+    html += "<h3>€"+p.price.toFixed(2)+"</h3>";
+    html += "<button onclick='openCheckout(\""+p.id+"\")'>Acquista</button>";
+
+    document.getElementById("content").innerHTML = html;
+}
+
+
+function openCheckout(id){
+    var p=null;
+    for (var i=0;i<products.length;i++){
+        if (products[i].id===id){ p=products[i]; break; }
+    }
+
+    var modal=document.createElement("div");
+    modal.className="modal-bg";
+
+    var html="";
+    html+="<div class='modal'><h3>Checkout – "+p.title+"</h3>";
+    html+="<label>Nome:<br><input id='buyerName'></label><br><br>";
+    html+="<label>Email:<br><input id='buyerEmail'></label><br><br>";
+    html+="<label>Quantità:<br><input type='number' id='buyerQty' value='1' min='1'></label><br><br>";
+    html+="<button onclick='buy(\""+p.id+"\")'>Compra</button>";
+    html+="<button onclick='this.parentNode.parentNode.remove()'>Chiudi</button></div>";
+
+    modal.innerHTML = html;
+    document.body.appendChild(modal);
+}
+
+function buy(id){
+    var p=null;
+    for (var i=0;i<products.length;i++){
+        if (products[i].id===id){ p=products[i]; break; }
+    }
+
+    var name=document.getElementById("buyerName").value;
+    var email=document.getElementById("buyerEmail").value;
+    var qty=parseInt(document.getElementById("buyerQty").value);
+
+    var total = p.price * qty;
+
+    generatePDF(p, name, email, qty, total);
+    alert("Scontrino PDF generato!");
+
+    document.querySelector(".modal-bg").remove();
+}
+
+
+function generatePDF(p,name,email,qty,total){
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Scontrino d'acquisto", 20, 20);
+
+    doc.setFontSize(12);
+    doc.text("Cliente: "+name+" - "+email, 20, 35);
+    doc.text("Prodotto: "+p.title, 20, 45);
+    doc.text("Prezzo: € "+p.price.toFixed(2), 20, 55);
+    doc.text("Quantità: "+qty, 20, 65);
+    doc.text("Totale: € "+total.toFixed(2), 20, 75);
+
+    doc.save("scontrino_"+p.id+".pdf");
+}
+
+loadAll();
+</script>
+</body>
+</html>

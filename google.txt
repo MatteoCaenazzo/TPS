@@ -1,0 +1,3 @@
+g1 | Pixel 8 | Smartphone | 799.00 | Smartphone Google con fotocamera avanzata e Android puro.
+g2 | Pixelbook Go | Laptop | 899.00 | Laptop leggero e portatile per lavoro e studio.
+g3 | Pixel Tablet | Tablet | 599.00 | Tablet versatile per navigazione, multimedia e app Android.
