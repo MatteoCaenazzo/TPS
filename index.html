@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>RSA</title>
+</head>
+<body>
+
+<form action="server.php" method="post">
+<input type="number" id="msg" required>
+<input type="hidden" name="cifrato" id="cifrato">
+<input type="submit" value="Invia" onclick="cifra()">
+</form>
+
+<script>
+function cifra() {
+    var msg = document.getElementById("msg").value
+    var e = 3
+    var n = 33
+    var c = 1
+    for (var i = 0; i < e; i++) {
+        c = (c * msg) % n
+    }
+    document.getElementById("cifrato").value = c
+}
+</script>
+
+</body>
+</html>
