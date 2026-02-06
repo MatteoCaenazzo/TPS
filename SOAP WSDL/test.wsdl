@@ -1,0 +1,75 @@
+<definitions name="ConversionService"
+    targetNamespace="urn:conversion"
+    xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:tns="urn:conversion"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <message name="MetriToPolliciRequest">
+        <part name="metri" type="xsd:float" />
+    </message>
+
+    <message name="MetriToPolliciResponse">
+        <part name="pollici" type="xsd:float" />
+    </message>
+
+    <message name="PolliciToMetriRequest">
+        <part name="pollici" type="xsd:float" />
+    </message>
+
+    <message name="PolliciToMetriResponse">
+        <part name="metri" type="xsd:float" />
+    </message>
+
+    <portType name="ConversionPortType">
+        <operation name="metriToPollici">
+            <input message="tns:MetriToPolliciRequest" />
+            <output message="tns:MetriToPolliciResponse" />
+        </operation>
+
+        <operation name="polliciToMetri">
+            <input message="tns:PolliciToMetriRequest" />
+            <output message="tns:PolliciToMetriResponse" />
+        </operation>
+    </portType>
+
+    <binding name="ConversionBinding" type="tns:ConversionPortType">
+        <soap:binding style="rpc"
+            transport="http://schemas.xmlsoap.org/soap/http" />
+
+        <operation name="metriToPollici">
+            <soap:operation soapAction="metriToPollici" />
+            <input>
+                <soap:body use="encoded"
+                    encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                    namespace="urn:conversion" />
+            </input>
+            <output>
+                <soap:body use="encoded"
+                    encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                    namespace="urn:conversion" />
+            </output>
+        </operation>
+
+        <operation name="polliciToMetri">
+            <soap:operation soapAction="polliciToMetri" />
+            <input>
+                <soap:body use="encoded"
+                    encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                    namespace="urn:conversion" />
+            </input>
+            <output>
+                <soap:body use="encoded"
+                    encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                    namespace="urn:conversion" />
+            </output>
+        </operation>
+    </binding>
+
+
+    <service name="ConversionService">
+        <port name="ConversionPort" binding="tns:ConversionBinding">
+            <soap:address location="http://127.0.0.1/WSDL/server.php" />
+        </port>
+    </service>
+</definitions>
