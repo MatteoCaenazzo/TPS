@@ -2,27 +2,52 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>RSA</title>
+<title>RSA Testo</title>
 </head>
 <body>
 
-<form action="server.php" method="post">
-<input type="number" id="msg" required>
-<input type="hidden" name="cifrato" id="cifrato">
-<input type="submit" value="Invia" onclick="cifra()">
+<h2>RSA Testo – Client</h2>
+
+<label>Messaggio:</label>
+<input type="text" id="msg" required>
+<br><br>
+
+<button id="cifraBtn" onClick="mostraCifrato()">Cifra e mostra ASCII</button>
+
+<form id="rsaForm" action="server.php" method="post">
+    <input type="hidden" id="cifrato" name="cifrato">
+    <button type="submit">Invia al server</button>
 </form>
 
+<h3>Messaggio cifrato (client):</h3>
+<div id="messaggioCifrato"></div>
+
 <script>
-function cifra() {
-    var msg = document.getElementById("msg").value
-    var e = 3
-    var n = 33
-    var c = 1
-    for (var i = 0; i < e; i++) {
-        c = (c * msg) % n
+function cifraTesto(testo, e, n) {
+    var risultato = "";
+    for (var i = 0; i < testo.length; i++) {
+        var ascii = testo.charCodeAt(i);
+        var c = 1;
+        for (var j = 0; j < e; j++) {
+            c = (c * ascii) % n;
+        }
+        risultato += c + " ";
     }
-    document.getElementById("cifrato").value = c
+    return risultato.trim();
 }
+
+function mostraCifrato(){
+    fetch("chiave_pubblica.json")
+    .then(res => res.json())
+    .then(data => {
+        var e = data.e;
+        var n = data.n;
+        var testo = document.getElementById("msg").value;
+        var cifrato = cifraTesto(testo, e, n);
+        document.getElementById("cifrato").value = cifrato;
+        document.getElementById("messaggioCifrato").innerText = cifrato;
+    });
+};
 </script>
 
 </body>
